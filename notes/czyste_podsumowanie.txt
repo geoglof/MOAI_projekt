@@ -1,0 +1,23 @@
+﻿GDELT i sentiment analysis
+Jak GDELT liczy sentiment
+* Tone = pozytywne słowa minus negatywne - proste i intuicyjne, łatwo to zrozumieć     i ewentualnie odtworzyć samemu
+* Polarity = suma wszystkich emocji, mówi jak bardzo "naładowany" jest artykuł - przydatne bo neutralny news też niesie informację
+* Słowa nie są równe - mocniejsze emocjonalnie mają większą wagę (Scored Value), np. "katastrofa" i "problem"
+* Słownik Loughran-McDonald - dostosowany do języka finansowego, zwykłe modele sentymentu tego nie ogarniają (np. słowo "yield" znaczy coś innego w finansach niż normalnie)
+przydatne dla naszego projektu
+* GDELT rejestruje dokładny czas newsa z dokładnością do 15 minut - kluczowe jeśli chcemy łączyć newsy z cenami akcji z tego samego momentu
+* Dwa znaczniki czasu: kiedy news się pojawił i kiedy zaczął być powielany - można mierzyć jak szybko informacja "rozchodzi się" po rynku
+* NumMentions, NumSources, NumArticles - jeśli te liczby nagle skaczą, to znaczy że temat stał się viralem i "kowalscy" zaczynają reagować
+* Filtry tematyczne (np. ECON_INFLATION, ECON_BANKRUPTCY) - można od razu wyciągać tylko newsy powiązane z giełdą, bez śmieciowych artykułów
+Największe zaskoczenie - logika kontrariańska
+* jeśli najpierw rośnie wolumen na giełdzie, a potem pojawia się lawina super pozytywnych newsów - to jest sygnał do wyjścia, nie wejścia
+* "biznesmeni" już kupili wcześniej, a teraz sprzedaje się to "ulicy" która kupuje na górce nakręcona newsami
+* GDELT sam z siebie tego nie rozwiązuje - trzeba do tego użyć testu Grangera albo modeli VAR żeby sprawdzić co było pierwsze: news czy ruch ceny
+Czy to praktyczne dla nas?
+* Samo podłączenie się do GDELT przez bibliotekę gdeltdoc albo BigQuery - wykonalne
+* Problem jest z wolumenem danych - GDELT generuje ogromne ilości informacji         i trzeba dobrze filtrować żeby nie utonąć
+* Gotowy sentiment score z GDELT jest wygodny, ale trochę "czarna skrzynka" - nie zawsze wiadomo dlaczego dany artykuł dostał taki wynik - lepiej jakby udało się stworzyć własny algorytm
+* Dla porównania FinBERT albo RoBERTa dają więcej kontroli bo sami odpytujemy model i wiemy co dostajemy na wejściu i wyjściu
+* Do naszego projektu GDELT może być świetnym źródłem danych i wstępnego sentymentu, ale nie narzędziem do analizy
+Główny wniosek
+GDELT robi dużo rzeczy automatycznie i ma ogromny zasięg danych, ale nie jest magicznym rozwiązaniem - przyczynowość między newsem a giełdą trzeba i tak liczyć. Najbardziej wartościowe wydaje mi się połączenie danych z GDELT (jako źródło newsów + wstępny sentiment) z własnym modelem (jakimś) który zweryfikuje czy dany artykuł rzeczywiście jest istotny dla analizy.

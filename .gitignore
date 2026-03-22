@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Data (raw data can be large, keep it local)
+data/raw/*
+!data/raw/.gitkeep
+
+# Environment variables / secrets
+.env
+*.key
+
+# Model files (too large for git)
+*.pt
+*.bin
+*.h5
+*.onnx

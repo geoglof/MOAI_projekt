@@ -1,0 +1,78 @@
+﻿I.    Źródła danych:
+Stricte finansowe:,
+•    Yahoo Finance(API) -> ceny akcji, financial news
+Social media (model RoBERTa-Twitter do analizy tekstów z sociali?):,
+•    Reddit PRAW (Python Reddit API Wrapper)
+•    Google Trends
+•    X/Threads (jak??)
+Geopolityczne + finansowe:,
+•    GDELT (biblioteka Gdeltdoc lub Google BigQuery)
+•    newsdata.io (wyszukiwane po keywords, oznaczenie tematyki)
+* •    newsapi.org (wyszukiwane po keywords)
+Skąd dane - finansowe, akcji, etf - yahoofinance(python) 
+- są też newsy finansowe ( dobrać querry aby ograniczyć newsy, które niosą małą wartość). Do socialmediów --> jak kowalski reaguje na newsy ze świata (tagi np. #cośtam lub /cośtamelse). google search dane.
+
+News API - 2000artyk./dzień - dostep do newsów 8lat, wyszukiwanie po keywords, labels, oznaczenie przez AI.
+GDELT - ogromne volumeny danychte, biblioka do łączenia z api, tabelki sql → zaznaczają sentiment score (+, 0, -)(sprawdzić jak działają).
+Artykuły vs reddit/googletrends - inne spojrzenie na newsa
+
+* bot (scraping danych) - nie robimy, trudne
+
+* API do danych. BERTFinance
+embedingi (+znacznie więcej) - znaczenie słów zależnie od kontekstu - klastry ze względu na różne znaczenie ze wzgllędu na kontekst, LUB
+* LLM - zwraca 0,1 czy artykuł jest istotny pod względem sentiment analisis
+-- prompt do tego aby model zrobił taki przesiew
+
+* context chunking - jeśli więcej niż przyjmowana liczba tokenów przez model
+* topicmodeling - BERTopic (pogrupowane artykuły od razu nazwane (klastry))
+* test przyczynowości Grangera (statystyka)
+
+
+średnia ruchoma w czasie
+
+2. Mój research (GDELT)
+
+
+Kluczowe założenia systemu GDELT i analizy rynku
+   * Tone (nasz sentiment score = różnica pozytywów i negatywów) oraz Polarity (suma wszystkich emocji (positive+negative)) -> prosto określają, czy tekst jest optymistyczny czy pesymistyczny.
+   * Liczenie słów (GCAM): System czyta tekst i zlicza konkretne słowa (np. związane ze smutkiem czy finansami dzięki profesjonalnemu narzędziu
+   * Wagi słów (Scored Value): Silniejsze słowa mają więcej punktów (np. "wybitny" waży więcej niż "dobry") -> ostateczny nastrój to średnia siły użytych słów.
+   * Żargon finansowy: System używa specjalnych słowników (np. Loughran-McDonald) -> dzięki temu dobrze rozumie chłodny, specyficzny język bankierów i ekonomistów.
+   * Co było pierwsze? (Przyczynowość): GDELT daje dokładny czas newsa, ale Ty musisz użyć matematyki (np. testu Grangera) -> pozwala to sprawdzić, czy to news ruszył giełdę, czy giełda wywołała newsa.
+   * Szybkość rozchodzenia się informacji: System notuje czas pierwszego zdarzenia i czas jego powielenia -> to pokazuje Ci, jak szybko plotka staje się wiedzą publiczną.
+   * Efekt tłumu (Masa krytyczna): Nagły skok liczby artykułów i źródeł oznacza, że temat stał się viralem -> w tym momencie zwykli ludzie (tzw. "ulica") zaczynają masowo handlować.
+   * Głos z pierwszej linii: GDELT wyłapuje osadzone posty z social mediów (Twitter, YouTube) -> daje to podgląd sytuacji na żywo, omijając opóźnienia wielkich redakcji.
+   * Wyciąganie konkretów (AMOUNTS): System automatycznie wędkuje z tekstu najważniejsze liczby, kwoty i to, czego dotyczą.
+   * Filtry tematyczne: GDELT przypisuje do artykułów konkretne metki giełdowe -> dzięki temu łatwo odfiltrujesz tylko newsy o inflacji, bankructwach czy raportach spółek.
+   * Strategia "pod prąd" (Unikanie pułapki): Jeśli najpierw rośnie obrót na giełdzie, a dopiero potem wybucha szał super-pozytywnych newsów, jest to sygnał do ucieczki -> duzi gracze ("smart money") właśnie sprzedają swoje akcje "ulicy", która kupuje na górce.
+
+
+
+Tone = Positive Score - Negative Score
+Polarity = pos. score + neg. score
+
+GCAM - mapuje tekst na specjalistyczne słowniki
+Czyta tekst i zlicza, ile razy wystąpiły słowa z danej kategorii - Wykorzystuje do tego m.in. Linguistic Inquiry and Word Count – profesjonalne narzędzie psychologiczne zliczające słowa z kategorii takich jak złość, smutek, finanse czy nagroda.
+
+Scored Value (Wartości ważone): Niektóre słowa są "bardziej" negatywne niż inne. Narzędzia takie jak SentiWordNet, SentiWords, czy VADER przypisują każdemu słowu wagę (np. "dobry" to +1, ale "wybitny" to +3). Ostateczny wynik to średnia arytmetyczna z wag znalezionych słów.
+
+Zastosowanie słownika Loughran-McDonald - słownictwo ekonomiczne.
+Central Bank Financial Stability Report Sentiment: Słownik dostosowany specyficznie do raportów banków centralnych o stabilności finansowej (rozpoznający specyficzny, chłodny "żargon" bankierów)
+
+System GDELT analizuje jedynie tekst i nie rozwiązuje matematycznie problemu sprzężenia zwrotnego pomiędzy rynkiem a newsem. Aby rozwiązać problem przyczynowości w Twoim modelu, powinieneś zapisywać dokładny znacznik czasu (w GDELT jest to EventTimeDate z dokładnością do 15 minut
+) i zastosować modele wektorowej autoregresji (VAR) lub test przyczynowości Grangera na szeregach czasowych giełdy i sentymentu, aby sprawdzić, co "prowadzi" wykres).
+
+Śledzenie opóźnienia: Zapisywane są dwa czasy z dokładnością do 15 minut: EventTimeDate (moment, w którym system po raz pierwszy zarejestrował zdarzenie) oraz MentionTimeDate (czas bieżącej wzmianki/powielenia w kolejnych mediach)
+. Różnica między nimi mówi o tym, jak szybko news staje się publiczny.
+
+Mierzenie masy krytycznej: Narzędzie mierzy zasięg za pomocą wskaźników takich jak NumMentions (całkowita liczba wzmianek), NumSources (liczba unikalnych źródeł piszących o sprawie) oraz NumArticles (liczba dokumentów źródłowych)
+. Spikes (nagłe skoki) w tych polach oznaczają moment, w którym "ulica" rzuca się do handlu. Twój model może dzięki temu precyzyjnie identyfikować fazę nasycenia rynku wiedzą.
+
+GDELT identyfikuje posty z mediów społecznościowych (takich jak Twitter, Instagram, YouTube, Vine), które są osadzane w artykułach i zapisuje je w polach V2.1SOCIALIMAGEEMBEDS i V2.1SOCIALVIDEOEMBEDS
+. Analiza tych materiałów w czasie rzeczywistym daje, jak określa to dokumentacja, "widok z poziomu gruntu" (ground-level view) na rozwijającą się sytuację z ominięciem oficjalnych kanałów i opóźnień redakcyjnych
+
+Pole V2.1AMOUNTS: System wyodrębnia konkretne liczby i kwoty z tekstu wraz z ich celem
+
+Rozpoznawanie specyficznych motywów giełdowych: GDELT mapuje na artykuły szczegółowe słowniki i tematy (Global Knowledge Graph Themes), co umożliwia filtrowanie po zdarzeniach ściśle rynkowych, takich jak np.: ECON_STOCKMARKET (giełda), ECON_EARNINGSREPORT (raporty finansowe), ECON_IPO (debiuty giełdowe), ECON_BANKRUPTCY (bankructwa) czy ECON_INFLATION (inflacja)
+
+Informacja spoza dostarczonych źródeł: Aby uporać się ze zjawiskiem front-runningu przez dużych inwestorów i oligarchów, Twój model analityczny powinien wykorzystać system taki jak GDELT w sposób kontrariański (przeciwstawny).Jeśli na giełdzie zaobserwujesz silny wzrost wolumenu spółki, a chwilę później Twój system GDELT odnotuje pojawienie się pierwszej publikacji (EventTimeDate), której następnie lawinowo zaczną rosnąć wartości w tabeli Mentions (wzrost NumArticles i NumSources ze skrajnie pozytywnym Sentymentem AvgTone), Twój model nie powinien sugerować "kupuj". Przeciwnie – dla Ciebie sygnał o zmasowanym dotarciu pozytywnej wiadomości do prasy i ulicy jest sygnałem wyjścia, ponieważ to w tym momencie "smart money", które wiedziało o fakcie wcześniej, będzie masowo zamykać swoje pozycje i realizować zyski na kupujących detalistach.
