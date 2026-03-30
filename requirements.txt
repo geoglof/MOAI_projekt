@@ -1,0 +1,14 @@
+yfinance
+gdeltdoc
+transformers
+torch
+pandas
+numpy
+scikit-learn
+statsmodels
+matplotlib
+seaborn
+plotly
+streamlit
+jupyter
+ipykernel
