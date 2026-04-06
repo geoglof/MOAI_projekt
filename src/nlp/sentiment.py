@@ -9,8 +9,13 @@ Usage:
     daily = analyzer.analyze_batch(list_of_headlines)
 """
 
+from pathlib import Path
+
 import pandas as pd
 from transformers import pipeline
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+DEFAULT_OUTPUT = PROJECT_ROOT / "data" / "processed" / "sentiment_scores.csv"
 
 
 class SentimentAnalyzer:
@@ -62,6 +67,12 @@ class SentimentAnalyzer:
         df.insert(0, "text", texts)
         return df
 
+    def save(self, df: pd.DataFrame, path: Path = DEFAULT_OUTPUT) -> None:
+        """Save sentiment results to CSV. Appends if the file already exists."""
+        header = not path.exists()
+        df.to_csv(path, mode="a", header=header, index=False)
+        print(f"Saved {len(df)} rows to {path}")
+
     def aggregate_daily(self, df: pd.DataFrame, date_col: str = "date") -> pd.DataFrame:
         """Aggregate article-level sentiments into daily scores.
 
@@ -106,3 +117,5 @@ if __name__ == "__main__":
     print(f"\n=== Summary ===")
     print(f"Mean sentiment: {df['numeric_score'].mean():+.3f}")
     print(f"Articles analyzed: {len(df)}")
+
+    analyzer.save(df)
