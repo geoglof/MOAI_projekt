@@ -176,7 +176,8 @@ jupyter
 **Jakub:**
 
 - Run FinBERT on all collected articles, store sentiment scores in `data/processed/sentiment_scores.csv`
-- Handle edge cases: articles with no relevant content, non-English text, very long articles (context chunking from our notes)
+- Handle edge cases: articles with no relevant content, non-English text, very long articles
+- For long articles (>512 tokens): extract the most meaningful/summarizing sentences before feeding to FinBERT, not just truncate. The summary must preserve correct meaning (extractive summarization). This ensures FinBERT scores the article's actual message, not just the first paragraph.
 
 **Kacper:**
 
