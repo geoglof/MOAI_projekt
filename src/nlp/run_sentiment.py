@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 from src.nlp.sentiment import SentimentAnalyzer
+from src.nlp.summarizer import get_article_summary
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 CLEAN_PATH = PROJECT_ROOT / "data" / "processed" / "spy_articles_clean.csv"
@@ -11,8 +12,14 @@ CLEAN_PATH = PROJECT_ROOT / "data" / "processed" / "spy_articles_clean.csv"
 articles = pd.read_csv(CLEAN_PATH)
 analyzer = SentimentAnalyzer()
 
-# Combine title + description for maximum context (FinBERT truncates at 512 tokens)
-texts = (articles["title"].fillna("") + ". " + articles["description"].fillna("")).tolist()
+# Fetch full articles and summarize to fit FinBERT's 512 token limit
+# Falls back to title + description if scraping fails
+print("Fetching and summarizing articles...")
+texts = []
+for i, row in articles.iterrows():
+    print(f"  [{i+1}/{len(articles)}] {row['title'][:60]}...")
+    summary = get_article_summary(str(row["url"]), str(row["title"]), str(row.get("description", "")))
+    texts.append(summary)
 
 results = analyzer.analyze_batch(texts)
 results["date"] = articles["date"].values

@@ -9,13 +9,24 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 RAW_DIR = PROJECT_ROOT / "data" / "raw"
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 
-# Keywords that a relevant SPY/S&P 500 article should contain (in title or description)
+# Must contain at least one of these — directly about SPY / US stock market
+MUST_HAVE = [
+    "s&p", "s&p 500", "spy", "dow", "nasdaq", "wall street",
+    "stock market", "stock futures", "equity futures",
+    "us stocks", "u.s. stocks",
+]
+
+# Supportive keywords — article must also feel financial (catches edge cases)
 FINANCE_KEYWORDS = [
-    "s&p", "spy", "stock", "market", "investor", "trading", "wall street",
-    "index", "etf", "rally", "bull", "bear", "dow", "nasdaq", "fed",
-    "inflation", "recession", "earnings", "hedge", "portfolio", "equity",
-    "treasury", "bond", "yield", "oil", "economy", "gdp", "rate",
-    "sector", "fund", "dividend", "futures", "options", "crypto", "bitcoin",
+    "investor", "trading", "rally", "earnings", "fed", "inflation",
+    "recession", "portfolio", "treasury", "yield", "economy", "gdp",
+    "sector", "futures", "etf", "index", "bull", "bear",
+]
+
+# Junk phrases that indicate irrelevant articles
+BLACKLIST = [
+    "casino", "betting", "golf", "masters 2026", "nba", "nfl", "wnba",
+    "disneyland", "disney", "cruise", "librarian", "recipe", "manitowoc",
 ]
 
 
@@ -27,9 +38,19 @@ def is_english(text: str) -> bool:
 
 
 def is_relevant(title: str, description: str) -> bool:
-    """Check if article is financially relevant based on keywords."""
+    """Check if article is about the US stock market, not just any finance topic."""
     combined = f"{title} {description}".lower()
-    return any(kw in combined for kw in FINANCE_KEYWORDS)
+
+    # Reject blacklisted junk
+    if any(bl in combined for bl in BLACKLIST):
+        return False
+
+    # Must mention SPY/S&P/US market directly
+    has_must = any(kw in combined for kw in MUST_HAVE)
+    # OR must have at least 2 finance keywords (catches relevant articles that don't name SPY directly)
+    finance_hits = sum(1 for kw in FINANCE_KEYWORDS if kw in combined)
+
+    return has_must or finance_hits >= 2
 
 
 def clean(input_path: Path, output_path: Path) -> pd.DataFrame:
