@@ -51,7 +51,17 @@ def collect_articles(query: str, days_back: int = 30) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    df = collect_articles("SPY OR S&P 500")
+    new_df = collect_articles("SPY OR S&P 500")
     output = RAW_DIR / "spy_newsapi_articles.csv"
-    df.to_csv(output, index=False)
-    print(f"Saved {len(df)} articles to {output}")
+
+    # Append to existing file, dedupe by URL
+    if output.exists():
+        existing = pd.read_csv(output)
+        combined = pd.concat([existing, new_df], ignore_index=True)
+        combined = combined.drop_duplicates(subset=["url"]).reset_index(drop=True)
+        added = len(combined) - len(existing)
+        combined.to_csv(output, index=False)
+        print(f"Added {added} new articles (total: {len(combined)}) to {output}")
+    else:
+        new_df.to_csv(output, index=False)
+        print(f"Saved {len(new_df)} articles to {output}")
