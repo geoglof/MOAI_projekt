@@ -22,8 +22,11 @@ for i, row in articles.iterrows():
     texts.append(summary)
 
 results = analyzer.analyze_batch(texts)
+results["datetime"] = articles["datetime"].values if "datetime" in articles.columns else articles["date"].values
 results["date"] = articles["date"].values
 results["source"] = articles["source"].values
+results["tickers"] = articles["tickers"].values if "tickers" in articles.columns else ""
+results["title"] = articles["title"].values
 
 # Print results
 print("=== Sentiment Results ===\n")

@@ -39,8 +39,10 @@ def collect_articles(query: str, days_back: int = 30) -> pd.DataFrame:
 
     rows = []
     for a in articles:
+        published = a["publishedAt"]  # full ISO timestamp e.g. 2026-04-06T14:21:00Z
         rows.append({
-            "date": a["publishedAt"][:10],
+            "datetime": published,
+            "date": published[:10],
             "title": a["title"],
             "description": a.get("description", ""),
             "source": a["source"]["name"],

@@ -1,5 +1,6 @@
 """Clean raw news articles: remove duplicates, irrelevant, non-English, empty."""
 
+import re
 from pathlib import Path
 
 import pandas as pd
@@ -28,6 +29,32 @@ BLACKLIST = [
     "casino", "betting", "golf", "masters 2026", "nba", "nfl", "wnba",
     "disneyland", "disney", "cruise", "librarian", "recipe", "manitowoc",
 ]
+
+# Ticker / company aliases → canonical ticker symbol
+# Matched as whole words (with word boundaries) to avoid false positives
+TICKER_ALIASES = {
+    "SPY": [r"\bSPY\b", r"\bS&P\s*500\b", r"\bSP500\b", r"standard\s*&\s*poor"],
+    "DJIA": [r"\bDow\b", r"\bDJIA\b"],
+    "QQQ": [r"\bQQQ\b", r"Nasdaq\s*100"],
+    "IXIC": [r"\bNasdaq\b"],
+    "TSLA": [r"\bTesla\b", r"\bTSLA\b"],
+    "AAPL": [r"\bApple\b", r"\bAAPL\b"],
+    "MSFT": [r"\bMicrosoft\b", r"\bMSFT\b"],
+    "GOOGL": [r"\bAlphabet\b", r"\bGOOGL?\b", r"\bGoogle\b"],
+    "AMZN": [r"\bAmazon\b", r"\bAMZN\b"],
+    "NVDA": [r"\bNvidia\b", r"\bNVDA\b"],
+    "META": [r"\bMeta\s+Platforms?\b", r"\bFacebook\b"],
+}
+
+
+def detect_tickers(title: str, description: str) -> str:
+    """Return comma-separated tickers mentioned in the article."""
+    combined = f" {title} {description} "
+    found = []
+    for ticker, patterns in TICKER_ALIASES.items():
+        if any(re.search(p, combined, re.IGNORECASE) for p in patterns):
+            found.append(ticker)
+    return ",".join(found) if found else ""
 
 
 def is_english(text: str) -> bool:
@@ -69,6 +96,11 @@ def clean(input_path: Path, output_path: Path) -> pd.DataFrame:
 
     # Keep only financially relevant articles
     df = df[df.apply(lambda r: is_relevant(str(r["title"]), str(r["description"])), axis=1)]
+
+    # Tag each article with detected tickers/companies
+    df["tickers"] = df.apply(
+        lambda r: detect_tickers(str(r["title"]), str(r["description"])), axis=1
+    )
 
     df = df.reset_index(drop=True)
 
